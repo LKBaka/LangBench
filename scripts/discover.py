@@ -28,6 +28,10 @@ def discover_benchmarks():
                 # 测试套件目录本身就是测试用例
                 matched_langs = find_case_configs(suite_dir, languages)
 
+                # 过滤被禁用的语言
+                disabled_langs = suite_config.get('disabled_languages', [])
+                matched_langs = [lang for lang in matched_langs if lang not in disabled_langs]
+
                 test_suites[suite_dir.name] = {
                     'config': suite_config,
                     'path': str(suite_dir),

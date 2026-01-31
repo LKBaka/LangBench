@@ -3,3 +3,6 @@ description: "递归计算斐波那契数列 F(42)"
 timeout_seconds: 120
 iterations: 20
 warmup_runs: 3
+disabled_languages:
+  - python
+  - lua
