@@ -1,0 +1,9 @@
+# langs/csharp.yml
+name: "C#"
+platform: "linux"
+file_extension: ".cs"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y dotnet-sdk-8.0"
+run_command: "dotnet script {file_path}"
+version_command: "dotnet --version"

@@ -1,0 +1,9 @@
+# langs/zig.yml
+name: "Zig"
+platform: "linux"
+file_extension: ".zig"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y zig"
+run_command: "zig run {file_path}"
+version_command: "zig version"

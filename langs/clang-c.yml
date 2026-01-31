@@ -1,0 +1,10 @@
+# langs/clang-c.yml
+name: "Clang C"
+platform: "linux"
+file_extension: ".c"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y clang build-essential"  # 安装Clang工具链
+compile_command: "clang -O3 -o {output} {sources}"
+run_command: "./{output}"
+version_command: "clang --version"

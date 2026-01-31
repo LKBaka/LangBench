@@ -1,0 +1,10 @@
+# langs/asm.yml
+name: "Assembly"
+platform: "linux"
+file_extension: ".asm"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y nasm binutils"  # 安装NASM和链接器
+compile_command: "nasm -f elf64 {sources} -o {output}.o && ld {output}.o -o {output}"
+run_command: "./{output}"
+version_command: "nasm --version"

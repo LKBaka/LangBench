@@ -1,0 +1,9 @@
+# langs/js.yml
+name: "JavaScript"
+platform: "linux"
+file_extension: ".js"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y nodejs"
+run_command: "node {file_path}"
+version_command: "node --version"

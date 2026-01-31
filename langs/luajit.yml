@@ -1,0 +1,9 @@
+# langs/luajit.yml
+name: "LuaJIT"
+platform: "linux"
+file_extension: ".lua"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y luajit"
+run_command: "luajit {file_path}"
+version_command: "luajit --version"

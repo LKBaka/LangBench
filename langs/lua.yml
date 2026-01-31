@@ -1,0 +1,9 @@
+# langs/lua.yml
+name: "Lua"
+platform: "linux"
+file_extension: ".lua"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y lua5.3"
+run_command: "lua5.3 {file_path}"
+version_command: "lua5.3 --version"

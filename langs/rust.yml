@@ -1,0 +1,9 @@
+# langs/rust.yml
+name: "Rust"
+platform: "linux"
+file_extension: ".rs"
+setup_commands:
+  - "sudo apt-get install -y rustc cargo"  # 安装Rust工具链
+compile_command: "rustc -O -o {output} {sources}"
+run_command: "./{output}"
+version_command: "rustc --version"

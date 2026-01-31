@@ -1,0 +1,9 @@
+# langs/php.yml
+name: "PHP"
+platform: "linux"
+file_extension: ".php"
+setup_commands:
+  - "sudo apt-get update"
+  - "sudo apt-get install -y php-cli"
+run_command: "php {file_path}"
+version_command: "php --version"

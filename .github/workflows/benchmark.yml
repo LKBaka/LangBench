@@ -1,0 +1,76 @@
+# .github/workflows/benchmark.yml
+name: Linux Multi-Language Benchmark
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ 'README.md' ]
+  pull_request:
+    branches: [ main ]
+    paths-ignore: [ 'README.md' ]
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  discover:
+    name: 发现测试矩阵
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Discover available benchmarks
+        id: discover
+        run: |
+          # 此脚本会分析langs和benchmarks目录，生成一个包含所有有效（语言，测试套件）组合的JSON矩阵
+          echo "matrix=$(python scripts/discover.py)" >> $GITHUB_OUTPUT
+
+  run-benchmarks:
+    name: 执行测试 (${{ matrix.language }} - ${{ matrix.suite }})
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: 设置 ${{ matrix.language }} 环境
+        run: |
+          # 从语言配置中读取并执行安装命令
+          python -c "
+          import yaml
+          with open('langs/${{ matrix.language }}.yml', 'r') as f:
+              config = yaml.safe_load(f)
+              for cmd in config.get('setup_commands', []):
+                  print(cmd)
+          " | bash
+      - name: 运行基准测试
+        run: |
+          python scripts/runner.py \
+            --language ${{ matrix.language }} \
+            --suite ${{ matrix.suite }}
+      - name: 上传原始结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-result-${{ matrix.language }}-${{ matrix.suite }}
+          path: ./result.json
+
+  report:
+    name: 生成与发布报告
+    needs: run-benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 下载所有原始结果
+        uses: actions/download-artifact@v4
+      - name: 生成报告图表
+        run: |
+          python scripts/reporter.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 提交更新后的README
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git commit -m "自动更新基准测试结果" || exit 0
+          git push
