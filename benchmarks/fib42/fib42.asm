@@ -1,36 +1,27 @@
 section .data
-    n db 42
-    result_format db "%ld", 10, 0
-
-section .bss
-    result resq 1
+    n dq 42
 
 section .text
     global _start
 
-; 递归计算 fibonacci(n)
+; 迭代计算 fibonacci(n)
 ; 参数: RDI = n
 ; 返回: RAX = fib(n)
 fib:
     cmp rdi, 1
     jle .base_case
-    push rbx                    ; 保存调用者寄存器
-    mov rbx, rdi
 
-    ; 计算 fib(n-1)
-    dec rdi
-    call fib
-    push rax                    ; 保存 fib(n-1)
+    xor rax, rax                ; fib(0) = 0
+    mov rbx, 1                  ; fib(1) = 1
+    mov rcx, rdi
+    sub rcx, 1                  ; 循环 n-1 次
 
-    ; 计算 fib(n-2)
-    mov rdi, rbx
-    sub rdi, 2
-    call fib
+.loop:
+    add rax, rbx                ; fib(i) = fib(i-2) + fib(i-1)
+    xchg rax, rbx               ; 交换: rbx=新fib, rax=旧fib
+    loop .loop
 
-    ; 返回 fib(n-1) + fib(n-2)
-    pop rbx
-    add rax, rbx
-    pop rbx
+    mov rax, rbx                ; 返回 fib(n)
     ret
 
 .base_case:
@@ -40,10 +31,8 @@ fib:
 _start:
     mov rdi, [n]
     call fib
-    mov [result], rax
 
-    ; 打印结果 (转换十进制)
-    mov rdi, [result]
+    ; 打印结果
     call print_number
 
     ; 退出程序
@@ -52,11 +41,11 @@ _start:
     syscall
 
 ; 打印数字到 stdout
-; 参数: RDI = 要打印的数字
+; 参数: RAX = 要打印的数字
 print_number:
-    mov rax, rdi
     mov r8, 10
     xor rcx, rcx                ; 数字位数计数器
+    mov rbx, rsp                ; 保存原始栈指针
 
 .divide_loop:
     xor rdx, rdx
@@ -75,5 +64,5 @@ print_number:
     mov rdx, rcx
     syscall
 
-    add rsp, rcx                ; 恢复栈指针
+    mov rsp, rbx                ; 恢复栈指针
     ret
