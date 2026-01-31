@@ -82,7 +82,7 @@ def generate_results_table(df, failed_df):
     # 生成Markdown格式的结果表格
     Path('report').mkdir(exist_ok=True)
 
-    with open('report/results.md', 'w') as f:
+    with open('README.md', 'w') as f:
         f.write('# LangBench 测试报告\n\n')
 
         # 按测试用例分组（仅成功的数据）
