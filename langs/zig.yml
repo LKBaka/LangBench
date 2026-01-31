@@ -4,6 +4,6 @@ platform: "linux"
 file_extension: ".zig"
 setup_commands:
   - "sh -c \"if ! command -v zig &> /dev/null; then wget https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz -O /tmp/zig.tar.xz && tar -xf /tmp/zig.tar.xz -C /tmp && sudo mv /tmp/zig-linux-x86_64-0.13.0 /opt/zig && sudo ln -sf /opt/zig/zig /usr/local/bin/zig; fi\""
-compile_command: "zig build-exe -O ReleaseSafe {sources} -o {output}"
+compile_command: "zig build-exe {sources} -femit-bin={output} -O ReleaseSafe"
 run_command: "{output}"
 version_command: "zig version"

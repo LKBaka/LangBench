@@ -124,24 +124,33 @@ class BenchmarkRunner:
                     return {'success': False, 'error': f'No source file found'}
                 run_cmd = lang_config['run_command'].format(file_path=source_file)
 
-            process = subprocess.run(
+            # 使用 Popen 以便更好地控制超时
+            timeout = self.suite_config.get('timeout_seconds', 60)
+            process = subprocess.Popen(
                 run_cmd,
-                shell=True, capture_output=True, text=True, timeout=self.suite_config.get('timeout_seconds', 60)
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
             )
 
-            execution_time = time.time() - start_time
-            end_memory = self.get_memory_usage()
+            try:
+                stdout, stderr = process.communicate(timeout=timeout)
+                execution_time = time.time() - start_time
+                end_memory = self.get_memory_usage()
 
-            return {
-                'success': process.returncode == 0,
-                'execution_time': execution_time,
-                'memory_used': end_memory - start_memory,
-                'stdout': process.stdout,
-                'stderr': process.stderr,
-                'return_code': process.returncode
-            }
-        except subprocess.TimeoutExpired:
-            return {'success': False, 'error': 'timeout'}
+                return {
+                    'success': process.returncode == 0,
+                    'execution_time': execution_time,
+                    'memory_used': end_memory - start_memory,
+                    'stdout': stdout,
+                    'stderr': stderr,
+                    'return_code': process.returncode
+                }
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+                return {'success': False, 'error': 'timeout'}
         except Exception as e:
             return {'success': False, 'error': f'{str(e)}'}
 
