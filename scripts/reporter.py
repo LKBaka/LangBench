@@ -147,10 +147,11 @@ def generate_results_table(df, failed_df):
                         f.write(f"#### {language}\n")
                         f.write(f"**错误信息**: `{error}`\n\n")
 
-                        if 'failures' in row and row['failures']:
+                        failures = row.get('failures')
+                        if isinstance(failures, list) and failures:
                             f.write("**失败详情**:\n")
                             f.write("```\n")
-                            for i, failure in enumerate(row['failures'][:3], 1):
+                            for i, failure in enumerate(failures[:3], 1):
                                 f.write(f"尝试 {i}: {failure.get('error', 'unknown')}\n")
                             f.write("```\n\n")
 
