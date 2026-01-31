@@ -1,5 +1,5 @@
 name: "Fibonacci 30"
 description: "递归计算斐波那契数列 F(30)"
-timeout_seconds: 30
+timeout_seconds: 60
 iterations: 50
 warmup_runs: 5

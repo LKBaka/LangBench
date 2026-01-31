@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     languages, test_suites = discover_benchmarks()
 
-    # 生成测试矩阵
+    # 生成测试矩阵 - GitHub Actions 格式
     matrix = []
     for suite_name, suite_data in test_suites.items():
         for language in suite_data['languages']:
@@ -66,5 +66,6 @@ if __name__ == '__main__':
                 'suite': suite_name
             })
 
-    # 输出 JSON 矩阵
-    print(json.dumps(matrix))
+    # 输出 JSON 矩阵 - 使用 include 格式
+    output = {'include': matrix}
+    print(json.dumps(output))
