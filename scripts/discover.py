@@ -16,7 +16,7 @@ def discover_benchmarks():
                 lang_name = lang_file.stem
                 languages[lang_name] = lang_config
 
-    # 发现所有测试套件
+    # 发现所有测试套件（每个测试套件目录本身就是一个测试）
     test_suites = {}
     for suite_dir in benchmarks_dir.iterdir():
         if suite_dir.is_dir():
@@ -25,20 +25,13 @@ def discover_benchmarks():
                 with open(config_file, 'r') as f:
                     suite_config = yaml.safe_load(f)
 
-                # 发现套件下的所有测试用例
-                test_cases = []
-                for case_dir in suite_dir.iterdir():
-                    if case_dir.is_dir() and not case_dir.name.startswith('.'):
-                        matched_langs = find_case_configs(case_dir, languages)
-                        test_cases.append({
-                            'name': case_dir.name,
-                            'path': str(case_dir),
-                            'languages': matched_langs
-                        })
+                # 测试套件目录本身就是测试用例
+                matched_langs = find_case_configs(suite_dir, languages)
 
                 test_suites[suite_dir.name] = {
                     'config': suite_config,
-                    'test_cases': test_cases
+                    'path': str(suite_dir),
+                    'languages': matched_langs
                 }
 
     return languages, test_suites
@@ -61,20 +54,17 @@ def find_case_configs(case_dir, languages):
 
 if __name__ == '__main__':
     import json
-    import sys
 
     languages, test_suites = discover_benchmarks()
 
     # 生成测试矩阵
     matrix = []
     for suite_name, suite_data in test_suites.items():
-        for test_case in suite_data['test_cases']:
-            for language in test_case['languages']:
-                matrix.append({
-                    'language': language,
-                    'suite': suite_name,
-                    'case': test_case['name']
-                })
+        for language in suite_data['languages']:
+            matrix.append({
+                'language': language,
+                'suite': suite_name
+            })
 
     # 输出 JSON 矩阵
     print(json.dumps(matrix))
