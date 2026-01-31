@@ -40,9 +40,25 @@ class BenchmarkRunner:
             self.run_single_execution(test_case_path, lang_config, output_file, source_file)
 
         # 正式测试运行
-        for _ in range(self.suite_config.get('iterations', 50)):
+        consecutive_timeouts = 0
+        max_iterations = self.suite_config.get('iterations', 50)
+
+        for _ in range(max_iterations):
             result = self.run_single_execution(test_case_path, lang_config, output_file, source_file)
             results.append(result)
+
+            # 检查连续超时
+            if not result['success'] and result.get('error') == 'timeout':
+                consecutive_timeouts += 1
+                if consecutive_timeouts >= 3:
+                    # 连续3次超时，放弃测试
+                    results.append({
+                        'success': False,
+                        'error': 'Aborted: 3 consecutive timeouts'
+                    })
+                    break
+            else:
+                consecutive_timeouts = 0
 
         return self.analyze_results(results)
 
