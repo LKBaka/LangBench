@@ -1,10 +1,12 @@
 # scripts/runner.py
 import subprocess
+import os
 import time
 import statistics
 import argparse
 import yaml
 import json
+import signal
 from pathlib import Path
 
 
@@ -140,15 +142,29 @@ class BenchmarkRunner:
                     return {'success': False, 'error': f'No source file found'}
                 run_cmd = lang_config['run_command'].format(file_path=source_file)
 
-            # 使用 Popen 以便更好地控制超时
+            # 使用 Popen，不使用 shell=True 以便正确处理超时
             timeout = self.suite_config.get('timeout_seconds', 60)
-            process = subprocess.Popen(
-                run_cmd,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+
+            # 对于编译型语言：直接运行可执行文件
+            if output_file:
+                process = subprocess.Popen(
+                    [str(output_file)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            else:
+                # 解释型语言：解析命令和参数，不用 shell=True
+                parts = run_cmd.split(' ', 1)
+                cmd = parts[0]
+                args = parts[1] if len(parts) > 1 else ''
+
+                process = subprocess.Popen(
+                    [cmd, args],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
 
             try:
                 stdout, stderr = process.communicate(timeout=timeout)
