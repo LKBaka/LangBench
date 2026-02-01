@@ -4,6 +4,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
 
+def format_time(seconds, decimals=4):
+    """根据时间大小自动选择合适的单位"""
+    if seconds >= 1:
+        return f"{seconds:.{decimals}f}s"
+    elif seconds >= 0.001:
+        return f"{seconds * 1000:.{decimals}f}ms"
+    else:
+        return f"{seconds * 1000000:.{decimals}f}μs"
+
 def generate_report(results_dir):
     results = []
     failed_results = []
@@ -11,26 +20,20 @@ def generate_report(results_dir):
     for result_file in Path(results_dir).rglob("*.json"):
         with open(result_file, 'r') as f:
             data = json.load(f)
-            # 从文件名提取信息：raw-result-语言-套件/result.json
-            filename = result_file.name
-            parent_dir = result_file.parent.name
 
-            # 如果文件名是 result.json，从父目录提取信息
-            if filename == 'result.json':
-                parts = parent_dir.split('-')
-                if len(parts) >= 3:
-                    # 格式: raw-result-language-suite
-                    data['language'] = parts[2] if len(parts) > 2 else parts[0]
-                    data['suite'] = '-'.join(parts[3:]) if len(parts) > 3 else parts[1]
-                    data['test_case'] = data['suite']
+            # 尝试从数据本身获取信息（runner.py 已经添加了 language 和 suite）
+            if 'language' in data and 'suite' in data:
+                data['test_case'] = data['suite']
 
-                    if data.get('success', False) and data.get('successful_runs', 0) > 0:
-                        results.append(data)
-                    else:
-                        failed_results.append(data)
+                if data.get('success', False) and data.get('successful_runs', 0) > 0:
+                    results.append(data)
+                else:
+                    failed_results.append(data)
 
     df = pd.DataFrame(results)
     failed_df = pd.DataFrame(failed_results)
+
+    print(f"Found {len(results)} successful results, {len(failed_results)} failed results")
 
     # 如果没有成功结果，跳过图表生成
     if len(df) > 0:
@@ -109,6 +112,17 @@ def generate_results_table(df, failed_df):
 
         # 按测试用例分组（仅成功的数据）
         if len(df) > 0 and 'test_case' in df.columns:
+            # 确定时间单位（根据最小值）
+            min_time = df['average_time'].min()
+            unit = 's'
+            decimals = 4
+            if min_time < 1:
+                unit = 'ms'
+                decimals = 3
+            if min_time < 0.001:
+                unit = 'μs'
+                decimals = 1
+
             for test_case in df['test_case'].unique():
                 f.write(f'## {test_case}\n\n')
                 test_data = df[df['test_case'] == test_case]
@@ -116,14 +130,29 @@ def generate_results_table(df, failed_df):
                 # 排序：按平均时间升序
                 test_data = test_data.sort_values('average_time')
 
-                f.write('| 语言 | 平均时间(s) | 最小时间(s) | 最大时间(s) | 标准差(s) | 成功率 |\n')
-                f.write('|------|-------------|-------------|-------------|-----------|--------|\n')
+                f.write(f'| 语言 | 平均时间({unit}) | 最小时间({unit}) | 最大时间({unit}) | 标准差({unit}) | 成功率 |\n')
+                f.write('|------|------------------|------------------|------------------|-----------------|--------|\n')
 
                 for _, row in test_data.iterrows():
                     success_rate = (row['successful_runs'] / row['total_runs']) * 100
-                    f.write(f"| {row['language']} | {row['average_time']:.4f} | "
-                           f"{row['min_time']:.4f} | {row['max_time']:.4f} | "
-                           f"{row['std_dev_time']:.4f} | {success_rate:.1f}% |\n")
+                    # 根据单位转换时间值
+                    if unit == 's':
+                        avg_str = f"{row['average_time']:.{decimals}f}"
+                        min_str = f"{row['min_time']:.{decimals}f}"
+                        max_str = f"{row['max_time']:.{decimals}f}"
+                        std_str = f"{row['std_dev_time']:.{decimals}f}"
+                    elif unit == 'ms':
+                        avg_str = f"{row['average_time'] * 1000:.{decimals}f}"
+                        min_str = f"{row['min_time'] * 1000:.{decimals}f}"
+                        max_str = f"{row['max_time'] * 1000:.{decimals}f}"
+                        std_str = f"{row['std_dev_time'] * 1000:.{decimals}f}"
+                    else:  # μs
+                        avg_str = f"{row['average_time'] * 1000000:.{decimals}f}"
+                        min_str = f"{row['min_time'] * 1000000:.{decimals}f}"
+                        max_str = f"{row['max_time'] * 1000000:.{decimals}f}"
+                        std_str = f"{row['std_dev_time'] * 1000000:.{decimals}f}"
+
+                    f.write(f"| {row['language']} | {avg_str} | {min_str} | {max_str} | {std_str} | {success_rate:.1f}% |\n")
 
                 f.write('\n')
 
@@ -133,7 +162,7 @@ def generate_results_table(df, failed_df):
                 test_data = df[df['test_case'] == test_case]
                 fastest = test_data.loc[test_data['average_time'].idxmin()]
                 f.write(f"- **{test_case}**: 最快语言是 {fastest['language']} "
-                       f"(平均 {fastest['average_time']:.4f}s)\n")
+                       f"(平均 {format_time(fastest['average_time'])})\n")
             f.write('\n')
 
         # 失败测试报告
