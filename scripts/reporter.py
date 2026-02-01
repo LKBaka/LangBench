@@ -99,6 +99,14 @@ def generate_results_table(df, failed_df):
     with open('README.md', 'w') as f:
         f.write('# LangBench 测试报告\n\n')
 
+        # 添加图表
+        if len(df) > 0:
+            f.write('## 性能图表\n\n')
+            f.write('### 性能对比\n\n')
+            f.write('![性能对比](report/comparison.png)\n\n')
+            f.write('### 性能趋势\n\n')
+            f.write('![性能趋势](report/trend.png)\n\n')
+
         # 按测试用例分组（仅成功的数据）
         if len(df) > 0:
             for test_case in df['test_case'].unique():

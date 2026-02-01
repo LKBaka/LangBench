@@ -4,7 +4,7 @@ platform: "linux"
 file_extension: ".cpp"
 setup_commands:
   - "sudo apt-get autoremove clang++-* clang-*"
-  - "sudo apt-get install -y --no-install-recommends clang-20 clang++-20"
+  - "sudo apt-get install -y --no-install-recommends clang clang++"
 compile_command: "clang++ -O3 -o {output} {sources}"
 run_command: "{output}"
 version_command: "clang++ --version"

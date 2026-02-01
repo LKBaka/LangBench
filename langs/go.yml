@@ -4,5 +4,6 @@ platform: "linux"
 file_extension: ".go"
 setup_commands:
   - "sudo apt-get install -y --no-install-recommends golang-go"
-run_command: "go run {file_path}"
+compile_command: "go build -o {output} {file_path}"
+run_command: "{output}"
 version_command: "go version"

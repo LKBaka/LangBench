@@ -61,7 +61,7 @@ jobs:
           path: ./result.json
 
   report:
-    name: 生成与发布报告
+    name: 生成报告
     needs: run-benchmarks
     runs-on: ubuntu-latest
     steps:
@@ -71,15 +71,20 @@ jobs:
       - name: 安装 Python 依赖
         run: |
           pip install matplotlib pandas
-      - name: 生成报告图表
+      - name: 生成报告图表和表格
         run: |
-          python scripts/reporter.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: 提交更新后的README
+          python scripts/reporter.py --results-dir .
+      - name: 上传报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: |
+            report/*.png
+            README.md
+      - name: 提交更新
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
-          git commit -m "自动更新基准测试结果" || exit 0
+          git commit -m "更新基准测试报告" || exit 0
           git push
