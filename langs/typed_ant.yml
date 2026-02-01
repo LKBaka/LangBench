@@ -1,0 +1,10 @@
+# langs/ant.yml
+name: "TypedAnt"
+platform: "linux"
+file_extension: ".ta"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends rustc cargo"
+  - "git clone https://github.com/LKBaka/ant_cranelift_compiler /tmp/antc && cd /tmp/antc && cargo build --release && sudo makedir /opt/antc && sudo mv ./target/release/antc /opt/antc/antc && sudo mv ./include/ /opt/antc/include && sudo ln -sf /opt/antc/antc /usr/local/bin/antc"
+compile_command: "antc --output {output} --file {sources}"
+run_command: "{output}"
+version_command: "antc --version"
