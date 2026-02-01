@@ -137,7 +137,7 @@ def generate_results_table(df, failed_df):
             f.write('\n')
 
         # 失败测试报告
-        if len(failed_df) > 0:
+        if len(failed_df) > 0 and 'test_case' in failed_df.columns:
             f.write('## 失败测试详情\n\n')
 
             # 按测试用例分组失败结果

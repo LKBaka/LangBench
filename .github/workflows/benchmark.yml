@@ -4,10 +4,10 @@ name: Linux Multi-Language Benchmark
 on:
   push:
     branches: [ main ]
-    paths-ignore: [ 'README.md' ]
+    paths-ignore: [ 'README.md', 'report/**' ]
   pull_request:
     branches: [ main ]
-    paths-ignore: [ 'README.md' ]
+    paths-ignore: [ 'README.md', 'report/**' ]
   workflow_dispatch: # 允许手动触发
   
 permissions:
