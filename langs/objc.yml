@@ -1,0 +1,9 @@
+# langs/objc.yml
+name: "Objective-C"
+platform: "linux"
+file_extension: ".m"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends gnustep gnustep-devel"
+compile_command: "gcc -O3 -o {output} -fobjc-arc -I/usr/include/GNUstep -lgnustep-base {sources}"
+run_command: "{output}"
+version_command: "gcc --version"

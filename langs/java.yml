@@ -1,0 +1,9 @@
+# langs/java.yml
+name: "Java"
+platform: "linux"
+file_extension: ".java"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends default-jdk"
+compile_command: "javac {sources}"
+run_command: "java -cp {source_dir} {main_class}"
+version_command: "java --version"

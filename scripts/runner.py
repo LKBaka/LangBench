@@ -86,7 +86,8 @@ class BenchmarkRunner:
         # 执行编译命令
         compile_cmd = lang_config['compile_command'].format(
             sources=' '.join(source_files),
-            output=str(output_file)
+            output=str(output_file),
+            source_dir=str(test_case_path)
         )
 
         try:
@@ -107,10 +108,20 @@ class BenchmarkRunner:
                     'return_code': process.returncode
                 }
 
+            # 对于 Java，需要提取主类名
+            main_class = None
+            if file_ext == '.java':
+                for source_file in source_files:
+                    file_name = Path(source_file).stem
+                    main_class = file_name
+                    break
+
             return {
                 'success': True,
                 'output_file': str(output_file),
-                'source_file': source_files[0]  # 保存第一个源文件路径
+                'source_file': source_files[0],
+                'source_dir': str(test_case_path),
+                'main_class': main_class
             }
         except subprocess.TimeoutExpired:
             return {'success': False, 'error': 'Compilation timeout'}
@@ -133,7 +144,11 @@ class BenchmarkRunner:
             # 确定运行命令
             if output_file and lang_config.get('compile_command'):
                 # 编译型语言：运行可执行文件
-                run_cmd = lang_config['run_command'].format(output=str(output_file))
+                run_cmd = lang_config['run_command'].format(
+                    output=str(output_file),
+                    source_dir=str(test_case_path),
+                    main_class=main_class
+                )
             else:
                 # 解释型语言：直接运行源文件
                 if not source_file:
@@ -145,8 +160,17 @@ class BenchmarkRunner:
             # 使用 Popen，不使用 shell=True 以便正确处理超时
             timeout = self.suite_config.get('timeout_seconds', 60)
 
-            # 对于编译型语言：直接运行可执行文件
-            if output_file:
+            # 对于 Java，需要特殊处理
+            if main_class:
+                # Java: java -cp {source_dir} {main_class}
+                process = subprocess.Popen(
+                    ['java', '-cp', str(test_case_path), main_class],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            # 对于其他编译型语言：直接运行可执行文件
+            elif output_file:
                 process = subprocess.Popen(
                     [str(output_file)],
                     stdout=subprocess.PIPE,

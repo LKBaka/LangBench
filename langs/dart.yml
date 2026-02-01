@@ -1,0 +1,12 @@
+# langs/dart.yml
+name: "Dart"
+platform: "linux"
+file_extension: ".dart"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends curl unzip"
+  - "curl -sS https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/dart.gpg"
+  - "echo 'deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' | sudo tee /etc/apt/sources.list.d/dart.list"
+  - "sudo apt-get update && sudo apt-get install -y dart"
+compile_command: "dart compile exe {sources} -o {output}"
+run_command: "{output}"
+version_command: "dart --version"

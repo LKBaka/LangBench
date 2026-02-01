@@ -1,0 +1,9 @@
+# langs/kotlin.yml
+name: "Kotlin"
+platform: "linux"
+file_extension: ".kt"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends kotlin"
+compile_command: "kotlinc {sources} -include-runtime -d {output}.jar"
+run_command: "java -jar {output}.jar"
+version_command: "kotlinc -version"

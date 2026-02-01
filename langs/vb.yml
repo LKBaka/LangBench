@@ -1,0 +1,9 @@
+# langs/vb.yml
+name: "Visual Basic"
+platform: "linux"
+file_extension: ".vb"
+setup_commands:
+  - "sudo apt-get install -y --no-install-recommends mono-vbnc mono-complete"
+compile_command: "vbnc -out:{output} {sources}"
+run_command: "mono {output}"
+version_command: "vbnc --version"
