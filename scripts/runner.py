@@ -22,12 +22,15 @@ class BenchmarkRunner:
         # 编译阶段（如果需要）
         output_file = None
         source_file = None
+        main_class = None
+
         if lang_config.get('compile_command'):
             compile_result = self.compile_test_case(test_case_path, lang_config)
             if not compile_result['success']:
                 return compile_result
             output_file = compile_result['output_file']
             source_file = compile_result.get('source_file')
+            main_class = compile_result.get('main_class')
         else:
             # 解释型语言，查找源文件
             source_file = self.find_source_file(test_case_path, lang_config)
@@ -39,14 +42,14 @@ class BenchmarkRunner:
 
         # 预热运行
         for _ in range(self.suite_config.get('warmup_runs', 5)):
-            self.run_single_execution(test_case_path, lang_config, output_file, source_file)
+            self.run_single_execution(test_case_path, lang_config, output_file, source_file, main_class)
 
         # 正式测试运行
         consecutive_timeouts = 0
         max_iterations = self.suite_config.get('iterations', 50)
 
         for _ in range(max_iterations):
-            result = self.run_single_execution(test_case_path, lang_config, output_file, source_file)
+            result = self.run_single_execution(test_case_path, lang_config, output_file, source_file, main_class)
             results.append(result)
 
             # 检查连续超时
@@ -136,7 +139,7 @@ class BenchmarkRunner:
                 return str(file)
         return None
 
-    def run_single_execution(self, test_case_path, lang_config, output_file=None, source_file=None):
+    def run_single_execution(self, test_case_path, lang_config, output_file=None, source_file=None, main_class=None):
         start_time = time.time()
         start_memory = self.get_memory_usage()
 
